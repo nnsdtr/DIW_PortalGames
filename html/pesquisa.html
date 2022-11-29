@@ -20,9 +20,8 @@
         </nav>
 
         <div class="cabecalhoPesquisa">
-            <input id="txtPesquisa" class="searchBar form-control text-dark" type="text"
-              placeholder="Nome do jogo..."> 
-            <button id="btnPesquisa" class="btn btn-light my-sm-0">Ir</button>
+            <input class="form-control me-2" type="search" id="textoFiltro" placeholder="Search" aria-label="Search" oninput="filtro()">
+            <button class="btn btn-dark" type="button" onclick="filtro()">Search</button>
           </div>
 
     </header>
@@ -35,14 +34,14 @@
                 </div>
             </section>
 
-            <section id="conteudoPesquisa" class="row">
+            <section id="conteudoJogos" class="row">
 
             </section>
 
             
         <!-- Botão de carregar mais jogos -->
         <section class="carregarMaisJogos m-lg-1 p-md-0 row">
-          <button id="btnMaisPesquisa" type="button" class="btn btn-dark my-sm-0"><b>Carregar mais jogos</b></button>
+          <button id="btnMaisJogos" type="button" class="btn btn-dark my-sm-0"><b>Carregar mais jogos</b></button>
         </section>
       </div>
 
@@ -59,7 +58,7 @@
 
 
 </div>
-<script src="/js/appPesquisa.js"></script>
+<script src="/js/appPesquisa.js" defer></script>
 </main>
 </body>
 </html>
