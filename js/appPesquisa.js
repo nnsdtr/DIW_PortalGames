@@ -1,61 +1,90 @@
-const API_KEY = '1aa3bb39c3334036a3e8b13aefa463d3';
+const API_KEY = "1aa3bb39c3334036a3e8b13aefa463d3";
 
-let inicio = 0;
-let fim = 6;
-let pagina = 1;
+let searchConfig = {
+  numberOfElements: 10,
+  currentPage: null,
+  nextPage: null,
+};
 
-function filtro(){
-    var filtro = document.getElementById("textoFiltro").value;
-    exibeJogos(filtro.toLowerCase())
+function renderGameList(games) {
+  let str = '';
+
+  for (let i = 0; i < games.length; i++) {
+    let jogo = games[i];
+    str = str +
+      `<div class="card col-md-5" style="width: 30rem;">
+        <img src="${jogo.background_image}" class="card-img-top" alt="...">
+        <div class="card-body">
+          <h5 class="card-title"><b>${jogo.name}</b></h5>
+          <p class="card-text">Lançamento: ${jogo.released}</p>
+          <p class="card-text">Avaliação: ${jogo.rating}</p>
+          <a href="https://rawg.io/games/${jogo.id}" target="_blank" class="btn btn-dark">Mais detalhes</a>
+        </div>
+      </div>`;
+  }
+
+  return str;
 }
 
-function exibeJogos (filtroBusca) {
 
-    let sectionConteudoJogos = document.getElementById('conteudoJogos');
-    let str = sectionConteudoJogos.innerHTML;
+function searchBtnRequest(query) {
+  let url = new URL("https://api.rawg.io/api/games");
 
-    // Montar texto HTML dos filmes
-    let dados = JSON.parse (this.responseText);
+  url.searchParams.set('search', query);
+  url.searchParams.set('page_size', searchConfig.numberOfElements);
+  url.searchParams.set('key', API_KEY);
 
-    for (inicio; inicio < fim; inicio++) {
-        let jogo = dados.results[inicio];
+  searchConfig.currentPage = url;
+  return true;
+}
 
-        if(jogo.name.toLowerCase().startsWith(filtroBusca)){
+function moreGamesBtnRequest(query) {
+  if (searchConfig.nextPage != null) {
+    searchConfig.currentPage = searchConfig.nextPage;
+    return true;
+  }
+  return false;
+}
 
-        str = str + `<div class="card col-md-5" style="width: 30rem;">
-            <img src="${jogo.background_image}" class="card-img-top" alt="...">
-            <div class="card-body">
-                <h5 class="card-title"><b>${jogo.name}</b></h5>
-                <p class="card-text">Lançamento: ${jogo.released}</p>
-                <p class="card-text">Avaliação: ${jogo.rating}</p>
-                <a href="https://rawg.io/games/${jogo.id}" target="_blank" class="btn btn-dark">Mais detalhes</a>
-            </div>
-        </div>`;
-        }
+function loadGames(games) {
+  document.getElementById("conteudoJogos").innerHTML = renderGameList(games);
+}
+
+function loadMoreGames(games) {
+  document.getElementById("conteudoJogos").innerHTML += renderGameList(games);
+}
+
+function search(requester, loader) {
+  let query = document.getElementById("textoFiltro").value.toLowerCase();
+
+  if (query == '') {
+    alert(`Digite um termo para busca!`)
+    return;
+  };
+
+  if ( requester(query) ) {
+    let xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';
+
+    xhr.onload = (event) => {
+      if (xhr.status == 200) {
+        loader(event.target.response['results']);
+        searchConfig.nextPage = event.target.response['next'];
+      }
+      else
+        alert(`Erro ${xhr.status}: ${xhr.statusText}`);
     };
 
-    switch (fim){
-        case 18:
-            fim++;
-            break;
-        case 19:
-            fim = 6;
-            inicio = 0;
-            pagina++;
-        default:
-            fim +=6;
-    }
-    sectionConteudoJogos.innerHTML = str;
+    xhr.open("GET", searchConfig.currentPage);
+    xhr.send();
+  }
 }
 
-function carregarMaisJogos () {
 
-    let xhr = new XMLHttpRequest ();
-    xhr.onload = exibeJogos;
-    xhr.open ('GET', `https://api.rawg.io/api/games?key=${API_KEY}&page=${pagina}`);
-    xhr.send ();
-}
+document
+  .getElementById("btnPesquisa")
+  .addEventListener("click", () => { search(searchBtnRequest, loadGames) });
 
-document.getElementById ('btnMaisJogos').addEventListener ('click', carregarMaisJogos);
-document.addEventListener('load' ,carregarMaisJogos());
-
+document
+  .getElementById("btnMaisJogos")
+  .addEventListener("click", () => { search(moreGamesBtnRequest, loadMoreGames) });
